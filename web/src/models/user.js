@@ -38,12 +38,21 @@ export default {
         currentUser: action.payload || {},
       };
     },
+    addNotifyCount(state) {
+      return {
+        ...state,
+        currentUser: {
+          ...state.currentUser,
+          noticeCount: state.currentUser.noticeCount+1,
+        },
+      };
+    },
     changeNotifyCount(state, action) {
       return {
         ...state,
         currentUser: {
           ...state.currentUser,
-          notifyCount: action.payload,
+          noticeCount: action.payload,
         },
       };
     },

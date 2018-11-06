@@ -10,10 +10,22 @@ export async function userRegister(params) {
   })
 }
 
+export async function userLogin(params) {
+  return request(`${apiUrl}/account/login`, {
+    method: 'POST',
+    body: params,
+  });
+}
+
 export async function query() {
   return request('/api/users');
 }
 
 export async function queryCurrent() {
-  return request('/api/currentUser');
+  return request(`${apiUrl}/user/currentUser`);
 }
+
+export async function queryNotices() {
+  return request(`${apiUrl}/user/notices`);
+}
+

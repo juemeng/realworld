@@ -16,6 +16,7 @@ import logo from '../assets/logo.svg';
 import Footer from './Footer';
 import Header from './Header';
 import Context from './MenuContext';
+const signalR = require("@aspnet/signalr");
 
 const { Content } = Layout;
 
@@ -86,9 +87,6 @@ class BasicLayout extends React.PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'user/fetchCurrent',
-    });
-    dispatch({
       type: 'setting/getSetting',
     });
     this.renderRef = requestAnimationFrame(() => {
@@ -103,6 +101,32 @@ class BasicLayout extends React.PureComponent {
           isMobile: mobile,
         });
       }
+    });
+
+    let connection = new signalR.HubConnectionBuilder()
+      .withUrl('http://localhost:5000/deviceHub')
+      .build();
+
+    connection.on('addNotice', (data) => {
+      const alert = JSON.parse(data);
+      const notice = {id:alert.id,alertTime:alert.alertTime,title:alert.title}
+      this.props.dispatch({
+        type: 'global/addNotice',
+        payload: notice,
+      });
+
+      this.props.dispatch({
+        type: 'user/addNotifyCount'
+      });
+
+      this.props.dispatch({
+        type: 'alert/addAlert',
+        payload: alert,
+      });
+    });
+
+    connection.start().then(() => {
+      console.log('connected to hub');
     });
   }
 
@@ -165,13 +189,13 @@ class BasicLayout extends React.PureComponent {
       }
     });
     if (!currRouterData) {
-      return 'Ant Design Pro';
+      return '后台管理';
     }
     const message = formatMessage({
       id: currRouterData.locale || currRouterData.name,
       defaultMessage: currRouterData.name,
     });
-    return `${message} - Ant Design Pro`;
+    return `${message} - 后台管理`;
   };
 
   getLayoutStyle = () => {
@@ -238,7 +262,7 @@ class BasicLayout extends React.PureComponent {
             {...this.props}
           />
           <Content style={this.getContentStyle()}>{children}</Content>
-          <Footer />
+          <Footer/>
         </Layout>
       </Layout>
     );
@@ -254,7 +278,7 @@ class BasicLayout extends React.PureComponent {
           </ContainerQuery>
         </DocumentTitle>
         {(rendering || process.env.NODE_ENV === 'production') ? null : ( // Do show SettingDrawer in production
-          <SettingDrawer />
+          <SettingDrawer/>
         )}
       </React.Fragment>
     );

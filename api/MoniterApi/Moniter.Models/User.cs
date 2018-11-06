@@ -1,13 +1,10 @@
 ﻿using System;
 using Newtonsoft.Json;
 
-namespace Moniter.Domain
+namespace Moniter.Models
 {
-    public class User
+    public class User:Entity
     {
-        [JsonIgnore]
-        public int Id { get; set; }
-
         public string Username { get; set; }
 
         public string Email { get; set; }
@@ -15,6 +12,7 @@ namespace Moniter.Domain
         public string Bio { get; set; }
 
         public string Image { get; set; }
+        public UserRole Role { get; set; }
 
         [JsonIgnore]
         public byte[] Hash { get; set; }

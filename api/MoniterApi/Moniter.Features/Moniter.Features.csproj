@@ -5,20 +5,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Reference Include="FluentValidation, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7de548da2fbae0f0">
-        <HintPath>..\..\..\..\..\.nuget\packages\fluentvalidation\8.0.100\lib\netstandard2.0\FluentValidation.dll</HintPath>
-      </Reference>
-      <Reference Include="MediatR, Version=5.1.0.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>..\..\..\..\..\.nuget\packages\mediatr\5.1.0\lib\netstandard2.0\MediatR.dll</HintPath>
-      </Reference>
+        <ProjectReference Include="..\Moniter.Infrastructure\Moniter.Infrastructure.csproj" />
+        <ProjectReference Include="..\Moniter.Models\Moniter.Models.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Moniter.Infrastructure\Moniter.Infrastructure.csproj" />
+        <PackageReference Include="Abp.EntityFrameworkCore" Version="3.8.2" />
+        <PackageReference Include="aliyun-net-sdk-push" Version="3.10.0" />
+        <PackageReference Include="AutoMapper" Version="7.0.1" />
+        <PackageReference Include="FluentValidation.AspNetCore" Version="8.0.100" />
+        <PackageReference Include="MediatR" Version="5.1.0" />
+        <PackageReference Include="SSH.NET" Version="2016.1.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AutoMapper" Version="7.0.1" />
+      <Reference Include="Renci.SshNet, Version=2016.1.0.0, Culture=neutral, PublicKeyToken=1cee9f8bde3db106">
+        <HintPath>..\..\..\..\..\..\.nuget\packages\ssh.net\2016.1.0\lib\netstandard1.3\Renci.SshNet.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

@@ -23,7 +23,7 @@ namespace Moniter.Api.Controllers
 
 
         [HttpPost("login")]
-        public async Task<UserEnvelope> Login([FromBody] Login.Command command)
+        public async Task<LoginUser> Login([FromBody] Login.Command command)
         {
             return await _mediator.Send(command);
         }

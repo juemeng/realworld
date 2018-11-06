@@ -22,7 +22,7 @@ export default class RegisterResult extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      description:"将在5秒后进入首页"
+      description:"将在5秒后回到登录页"
     }
   }
 
@@ -31,15 +31,16 @@ export default class RegisterResult extends Component {
     this.timer = setInterval(()=>{
       if(x > 0) {
         this.setState({
-          description:`将在${x}秒后进入首页`
+          description:`将在${x}秒后回到登录页`
         })
         x--;
       }
       else {
         clearInterval(this.timer);
-        router.push({
-          pathname: '/'
-        });
+        // router.push({
+        //   pathname: '/user/login'
+        // });
+        location.href = "/";
       }
     },1000)
   }
@@ -51,7 +52,6 @@ export default class RegisterResult extends Component {
   }
 
   render() {
-    console.log(this.props);
     const {location} = this.props;
     const user = location.state.user;
     return (<Result

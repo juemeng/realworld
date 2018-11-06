@@ -7,6 +7,7 @@ import Link from 'umi/link';
 import Redirect from 'umi/redirect';
 
 const Authority = getAuthority();
+console.log(Authority);
 const Authorized = RenderAuthorized(Authority);
 
 export default ({ children }) => {

@@ -25,6 +25,15 @@ class HeaderView extends PureComponent {
   }
 
   componentDidMount() {
+    const { currentUser,dispatch } = this.props;
+    if(!currentUser.username) {
+      dispatch({
+        type: 'user/fetchCurrent',
+      });
+    }
+    dispatch({
+      type: 'global/fetchNotices',
+    });
     document.addEventListener('scroll', this.handScroll, { passive: true });
   }
 

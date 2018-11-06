@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Moniter.Models;
 
 namespace Moniter.Features.Users
 {
@@ -11,8 +12,15 @@ namespace Moniter.Features.Users
         public string Bio { get; set; }
 
         public string Image { get; set; }
+        
+        public UserRole Role { get; set; }
 
         public string Token { get; set; }
+    }
+
+    public class LoginUser : User
+    {
+        public int NoticeCount { get; set; }
     }
 
 

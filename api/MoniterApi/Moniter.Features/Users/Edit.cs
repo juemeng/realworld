@@ -74,7 +74,7 @@ namespace Moniter.Features.Users
                 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return new UserEnvelope(_mapper.Map<Domain.User, User>(user));
+                return new UserEnvelope(_mapper.Map<Models.User, User>(user));
             }
         }
     }

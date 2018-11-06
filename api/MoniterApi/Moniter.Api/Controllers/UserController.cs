@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Moniter.Features.Alert;
 using Moniter.Features.Users;
 using Moniter.Infrastructure;
 using Moniter.Infrastructure.Security;
@@ -21,15 +24,27 @@ namespace Moniter.Api.Controllers
             _currentUserAccessor = currentUserAccessor;
         }
 
-        [HttpGet]
-        public async Task<UserEnvelope> GetCurrent()
+        [HttpGet("currentUser")]
+        public async Task<User> GetCurrent()
         {
-            return await _mediator.Send(new Details.Query()
+            return await _mediator.Send(new Details.Query
             {
                 Username = _currentUserAccessor.GetCurrentUsername()
             });
         }
+        
+        [HttpGet("notices")]
+        public async Task<List<Alert>> GetNotices()
+        {
+            var notices = await _mediator.Send(new FetchNotice.Command());
+            if (!notices.Any())
+            {
+                notices = new List<Alert>();
+            }
 
+            return notices;
+        }
+        
         [HttpPut]
         public async Task<UserEnvelope> UpdateUser([FromBody]Edit.Command command)
         {

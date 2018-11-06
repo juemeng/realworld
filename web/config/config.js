@@ -52,6 +52,7 @@ export default {
   lessLoaderOptions: {
     javascriptEnabled: true,
   },
+  devtool: "source-map",
   cssLoaderOptions: {
     modules: true,
     getLocalIdent: (context, localIdentName, localName) => {

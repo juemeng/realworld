@@ -26,28 +26,30 @@ const checkStatus = response => {
   if (response.status >= 200 && response.status < 300) {
     return response;
   }
-
+  let errorMsg = "";
+  let response1 = response.clone();
   if (response.status == 400 || response.status == 422) {
+
     response.json().then(data => {
       let errorContent = Object.keys(data.errors).map(x => {
         return data.errors[x];
       });
-
+      errorMsg = errorContent.join('\n');
       notification.error({
         message: '发生错误',
-        description: errorContent.join('\n'),
+        description: errorMsg,
       });
     });
   } else {
-    const errortext = codeMessage[response.status] || response.statusText;
+    errorMsg = codeMessage[response.status] || response.statusText;
     notification.error({
       message: `请求错误 ${response.status}: ${response.url}`,
-      description: errortext,
+      description: errorMsg,
     });
   }
-  const error = new Error(errortext);
+  const error = new Error(errorMsg);
   error.name = response.status;
-  error.response = response;
+  error.response = response1;
   throw error;
 };
 
@@ -69,6 +71,11 @@ const cachedSave = (response, hashcode) => {
   }
   return response;
 };
+
+function buildAuthorization  ()  {
+  const token = localStorage.getItem("token");
+  return (token !== '') ? `Bearer ${token}` : '';
+}
 
 /**
  * Requests a URL, returning a promise.
@@ -95,6 +102,7 @@ export default function request(
 
   const defaultOptions = {
     // credentials: 'include',
+    headers:{}
   };
   const newOptions = { ...defaultOptions, ...options };
   if (
@@ -117,6 +125,11 @@ export default function request(
       };
     }
   }
+  let authorization = buildAuthorization();
+  if(authorization) {
+    newOptions.headers.Authorization = authorization;
+  }
+
 
   const expirys = options.expirys || 60;
   // options.expirys !== false, return the cache,
@@ -155,16 +168,20 @@ export default function request(
         return;
       }
       // environment should not be used
-      if (status === 403) {
+      else if (status === 403) {
         router.push('/exception/403');
         return;
       }
-      if (status <= 504 && status >= 500) {
+      else if (status <= 504 && status >= 500) {
         router.push('/exception/500');
         return;
       }
-      if (status >= 404 && status < 422) {
+      else if (status >= 404 && status < 422) {
         router.push('/exception/404');
+        return;
+      }
+      else {
+        return {error:true,response:e.response};
       }
     });
 }

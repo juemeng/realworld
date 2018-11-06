@@ -1,4 +1,6 @@
-import { queryNotices } from '@/services/api';
+import { queryNotices } from '@/services/user';
+import { routerRedux } from 'dva/router';
+import { stringify } from 'qs';
 
 export default {
   namespace: 'global',
@@ -9,7 +11,7 @@ export default {
   },
 
   effects: {
-    *fetchNotices(_, { call, put }) {
+    * fetchNotices(_, { call, put }) {
       const data = yield call(queryNotices);
       yield put({
         type: 'saveNotices',
@@ -20,7 +22,7 @@ export default {
         payload: data.length,
       });
     },
-    *clearNotices({ payload }, { put, select }) {
+    * clearNotices({ payload }, { put, select }) {
       yield put({
         type: 'saveClearedNotices',
         payload,
@@ -38,6 +40,12 @@ export default {
       return {
         ...state,
         collapsed: payload,
+      };
+    },
+    addNotice(state, { payload }) {
+      return {
+        ...state,
+        notices: state.notices.concat([payload]),
       };
     },
     saveNotices(state, { payload }) {

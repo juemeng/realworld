@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Moniter.Infrastructure;
 using Moniter.Infrastructure.Errors;
 using Moniter.Infrastructure.Security;
+using Moniter.Models;
 
 namespace Moniter.Features.Users
 {
@@ -79,17 +80,18 @@ namespace Moniter.Features.Users
                 }
 
                 var salt = Guid.NewGuid().ToByteArray();
-                var newUser = new Domain.User
+                var newUser = new Models.User
                 {
                     Username = message.User.Username,
                     Email = message.User.Email,
+                    Role = UserRole.User,
                     Hash = _passwordHasher.Hash(message.User.Password, salt),
                     Salt = salt
                 };
 
                 _context.Users.Add(newUser);
                 await _context.SaveChangesAsync(cancellationToken);
-                var user = _mapper.Map<Domain.User, User>(newUser);
+                var user = _mapper.Map<Models.User, User>(newUser);
                 user.Token = await _jwtTokenGenerator.CreateToken(newUser.Username);
                 return new UserEnvelope(user);
             }

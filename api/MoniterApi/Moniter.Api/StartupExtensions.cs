@@ -17,10 +17,10 @@ namespace Moniter.Api
         {
             services.AddOptions();
 
-            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes("whoseyoudaddyilovethemonkeyhead"));
+            var signingKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(@"whoseyoudaddyilovethemonkeyhead"));
             var signingCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
-            var issuer = "issuer";
-            var audience = "audience";
+            var issuer = @"hwaz";
+            var audience = @"xyz@123";
 
             services.Configure<JwtIssuerOptions>(options =>
             {

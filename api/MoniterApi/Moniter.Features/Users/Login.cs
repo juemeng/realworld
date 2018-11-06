@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Moniter.Infrastructure;
 using Moniter.Infrastructure.Errors;
 using Moniter.Infrastructure.Security;
+using Moniter.Models;
 
 namespace Moniter.Features.Users
 {
@@ -25,12 +26,12 @@ namespace Moniter.Features.Users
         {
             public LoginDataValidator()
             {
-                RuleFor(x => x.UserName).NotNull().NotEmpty();
-                RuleFor(x => x.Password).NotNull().NotEmpty();
+                RuleFor(x => x.UserName).NotNull().WithMessage(ErrorMessages.UserNameCannotBeNull);;
+                RuleFor(x => x.Password).NotNull().WithMessage(ErrorMessages.PasswordCannotBeNull);;
             }
         }
         
-        public class Command : IRequest<UserEnvelope>
+        public class Command : IRequest<LoginUser>
         {
             public LoginData User { get; set; }
         }
@@ -39,11 +40,11 @@ namespace Moniter.Features.Users
         {
             public CommandValidator()
             {
-                RuleFor(x => x.User).NotNull().SetValidator(new LoginDataValidator());
+                RuleFor(x => x.User).NotNull().WithMessage(ErrorMessages.UserCastFailure).SetValidator(new LoginDataValidator());
             }
         }
 
-        public class Handler : IRequestHandler<Command, UserEnvelope>
+        public class Handler : IRequestHandler<Command, LoginUser>
         {
             private readonly MoniterContext _context;
             private readonly IPasswordHasher _passwordHasher;
@@ -58,22 +59,25 @@ namespace Moniter.Features.Users
                 _mapper = mapper;
             }
 
-            public async Task<UserEnvelope> Handle(Command message, CancellationToken cancellationToken)
+            public async Task<LoginUser> Handle(Command message, CancellationToken cancellationToken)
             {
                 var user = await _context.Users.Where(x => x.Username == message.User.UserName).SingleOrDefaultAsync(cancellationToken);
                 if (user == null)
                 {
-                    throw new RestException(HttpStatusCode.Unauthorized, new { Error = "Invalid username / password." });
+                    throw new RestException(HttpStatusCode.BadRequest, new { Error = ErrorMessages.UserNameNotExists });
                 }
 
                 if (!user.Hash.SequenceEqual(_passwordHasher.Hash(message.User.Password, user.Salt)))
                 {
-                    throw new RestException(HttpStatusCode.Unauthorized, new { Error = "Invalid email / password." });
+                    throw new RestException(HttpStatusCode.BadRequest, new { Error = ErrorMessages.IncorrectPassword });
                 }
-             
-                var newUser  = _mapper.Map<Domain.User, User>(user);
+                var noticeCount = await _context.Alerts.CountAsync(x => x.Status == AlertStatus.New, cancellationToken);
+                
+                var newUser  = _mapper.Map<Models.User, LoginUser>(user);
                 newUser.Token = await _jwtTokenGenerator.CreateToken(user.Username);
-                return new UserEnvelope(newUser);
+                newUser.NoticeCount = noticeCount;
+                
+                return newUser;
             }
         }
     }

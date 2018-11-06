@@ -9,7 +9,6 @@ import styles from './Center.less';
 @connect(({ loading, user, project }) => ({
   listLoading: loading.effects['list/fetch'],
   currentUser: user.currentUser,
-  currentUserLoading: loading.effects['user/fetchCurrent'],
   project,
   projectLoading: loading.effects['project/fetchNotice'],
 }))
@@ -84,7 +83,6 @@ class Center extends PureComponent {
     const {
       listLoading,
       currentUser,
-      currentUserLoading,
       project: { notice },
       projectLoading,
       match,
@@ -123,7 +121,7 @@ class Center extends PureComponent {
       <GridContent className={styles.userCenter}>
         <Row gutter={24}>
           <Col lg={7} md={24}>
-            <Card bordered={false} style={{ marginBottom: 24 }} loading={currentUserLoading}>
+            <Card bordered={false} style={{ marginBottom: 24 }} loading={false}>
               {currentUser && Object.keys(currentUser).length ? (
                 <div>
                   <div className={styles.avatarHolder}>

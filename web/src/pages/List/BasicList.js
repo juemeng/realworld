@@ -23,8 +23,9 @@ import {
 
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import Result from '@/components/Result';
-
+import Ellipsis from '@/components/Ellipsis';
 import styles from './BasicList.less';
+import cardStyles from './CardList.less';
 
 const FormItem = Form.Item;
 const RadioButton = Radio.Button;
@@ -32,13 +33,14 @@ const RadioGroup = Radio.Group;
 const SelectOption = Select.Option;
 const { Search, TextArea } = Input;
 
-@connect(({ list, loading }) => ({
-  list,
-  loading: loading.models.list,
+@connect(({ user, alert, loading }) => ({
+  alerts: alert.alerts,
+  currentUser: user.currentUser,
+  loading: loading.models.alerts,
 }))
 @Form.create()
 class BasicList extends PureComponent {
-  state = { visible: false, done: false };
+  state = { visible: false, done: false,alertBackground: '#F44E47'};
 
   formLayout = {
     labelCol: { span: 7 },
@@ -48,11 +50,24 @@ class BasicList extends PureComponent {
   componentDidMount() {
     const { dispatch } = this.props;
     dispatch({
-      type: 'list/fetch',
-      payload: {
-        count: 5,
-      },
+      type: 'alert/fetch',
     });
+
+    this.timer = setInterval(()=>{
+      if(this.state.alertBackground == '#F44E47') {
+        this.setState({
+          alertBackground:'#fff'
+        })
+      }else {
+        this.setState({
+          alertBackground:'#F44E47'
+        })
+      }
+    },1000)
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.timer);
   }
 
   showModal = () => {
@@ -78,7 +93,7 @@ class BasicList extends PureComponent {
   };
 
   handleCancel = () => {
-    setTimeout(() => this.addBtn.blur(), 0);
+    // setTimeout(() => this.addBtn.blur(), 0);
     this.setState({
       visible: false,
     });
@@ -111,14 +126,28 @@ class BasicList extends PureComponent {
     });
   };
 
+  renderItem = item => {
+    const isNewAlert = item.status == 0;
+    let toggleBackground = isNewAlert?{ backgroundColor: this.state.alertBackground }:{};
+    return (<List.Item key={item.id}>
+        <Card hoverable className={cardStyles.card} actions={[<a>响应</a>]} style={toggleBackground}>
+          <Card.Meta
+            avatar={<Avatar style={{ color: '#fff', backgroundColor:  isNewAlert ? '#F44E47' : 'green' }}
+                            icon={isNewAlert ? 'alert' : 'phone'} shape="square" size="large"/>}
+            title={<a>{item.title}</a>}
+            description={
+              <Ellipsis className={cardStyles.item} lines={3}>
+                {item.description}<br/>{moment(item.alertTime).format("YYYY年MM月DD日 HH:mm:ss")}
+              </Ellipsis>
+            }
+          />
+        </Card>
+      </List.Item>);
+  };
+
   render() {
-    const {
-      list: { list },
-      loading,
-    } = this.props;
-    const {
-      form: { getFieldDecorator },
-    } = this.props;
+    const { alerts, loading, form: { getFieldDecorator } } = this.props;
+    const newAlerts = alerts.filter(a => a.status == 0);
     const { visible, done, current = {} } = this.state;
 
     const editAndDelete = (key, currentItem) => {
@@ -138,11 +167,11 @@ class BasicList extends PureComponent {
       ? { footer: null, onCancel: this.handleDone }
       : { okText: '保存', onOk: this.handleSubmit, onCancel: this.handleCancel };
 
-    const Info = ({ title, value, bordered }) => (
+    const Info = ({ title, value, bordered, style }) => (
       <div className={styles.headerInfo}>
         <span>{title}</span>
-        <p>{value}</p>
-        {bordered && <em />}
+        <p style={style}>{value}</p>
+        {bordered && <em/>}
       </div>
     );
 
@@ -150,33 +179,33 @@ class BasicList extends PureComponent {
       <div className={styles.extraContent}>
         <RadioGroup defaultValue="all">
           <RadioButton value="all">全部</RadioButton>
-          <RadioButton value="progress">进行中</RadioButton>
-          <RadioButton value="waiting">等待中</RadioButton>
+          <RadioButton value="progress">未处理</RadioButton>
+          <RadioButton value="waiting">已处理</RadioButton>
         </RadioGroup>
-        <Search className={styles.extraContentSearch} placeholder="请输入" onSearch={() => ({})} />
+        <Search className={styles.extraContentSearch} placeholder="请输入床位号" onSearch={() => ({})}/>
       </div>
     );
 
     const paginationProps = {
       showSizeChanger: true,
       showQuickJumper: true,
-      pageSize: 5,
-      total: 50,
+      pageSize: 20,
+      total: this.props.alerts.length,
     };
 
-    const ListContent = ({ data: { owner, createdAt, percent, status } }) => (
+    const ListContent = ({ data: { respondUserName, alertTime } }) => (
       <div className={styles.listContent}>
-        <div className={styles.listContentItem}>
-          <span>Owner</span>
-          <p>{owner}</p>
+        <div className={styles.listContentItem} style={{ width: 180 }}>
+          <span>处理人</span>
+          <p>{respondUserName}</p>
         </div>
         <div className={styles.listContentItem}>
-          <span>开始时间</span>
-          <p>{moment(createdAt).format('YYYY-MM-DD HH:mm')}</p>
+          <span>警报时间</span>
+          <p>{moment(alertTime).format('YYYY-MM-DD HH:mm:ss')}</p>
         </div>
-        <div className={styles.listContentItem}>
-          <Progress percent={percent} status={status} strokeWidth={6} style={{ width: 180 }} />
-        </div>
+        {/*<div className={styles.listContentItem}>*/}
+        {/*<Progress type={'circle'} percent={100} status={'success'} strokeWidth={6} width={40} />*/}
+        {/*</div>*/}
       </div>
     );
 
@@ -190,7 +219,7 @@ class BasicList extends PureComponent {
         }
       >
         <a>
-          更多 <Icon type="down" />
+          更多 <Icon type="down"/>
         </a>
       </Dropdown>
     );
@@ -217,7 +246,7 @@ class BasicList extends PureComponent {
             {getFieldDecorator('title', {
               rules: [{ required: true, message: '请输入任务名称' }],
               initialValue: current.title,
-            })(<Input placeholder="请输入" />)}
+            })(<Input placeholder="请输入"/>)}
           </FormItem>
           <FormItem label="开始时间" {...this.formLayout}>
             {getFieldDecorator('createdAt', {
@@ -229,7 +258,7 @@ class BasicList extends PureComponent {
                 placeholder="请选择"
                 format="YYYY-MM-DD HH:mm:ss"
                 style={{ width: '100%' }}
-              />
+              />,
             )}
           </FormItem>
           <FormItem label="任务负责人" {...this.formLayout}>
@@ -240,31 +269,49 @@ class BasicList extends PureComponent {
               <Select placeholder="请选择">
                 <SelectOption value="付晓晓">付晓晓</SelectOption>
                 <SelectOption value="周毛毛">周毛毛</SelectOption>
-              </Select>
+              </Select>,
             )}
           </FormItem>
           <FormItem {...this.formLayout} label="产品描述">
             {getFieldDecorator('subDescription', {
               rules: [{ message: '请输入至少五个字符的产品描述！', min: 5 }],
               initialValue: current.subDescription,
-            })(<TextArea rows={4} placeholder="请输入至少五个字符" />)}
+            })(<TextArea rows={4} placeholder="请输入至少五个字符"/>)}
           </FormItem>
         </Form>
       );
     };
+
+    const getActions = (item) => {
+      if (item.status == 0) {
+        return [<a
+          onClick={e => {
+            e.preventDefault();
+            this.showEditModal(item);
+          }}
+        >
+          待处理
+        </a>];
+      }
+
+      return [<p style={{ color: 'green' }}>
+        已处理
+      </p>];
+    };
+
     return (
       <PageHeaderWrapper>
         <div className={styles.standardList}>
           <Card bordered={false}>
             <Row>
               <Col sm={8} xs={24}>
-                <Info title="我的待办" value="8个任务" bordered />
+                <Info title="未处理警报" value={newAlerts.length} style={{ color: 'red' }} bordered/>
               </Col>
               <Col sm={8} xs={24}>
-                <Info title="本周任务平均处理时间" value="32分钟" bordered />
+                <Info title="已处理警报" value={alerts.length - newAlerts.length} bordered/>
               </Col>
               <Col sm={8} xs={24}>
-                <Info title="本周完成任务数" value="24个任务" />
+                <Info title="总警报数" value={alerts.length}/>
               </Col>
             </Row>
           </Card>
@@ -272,53 +319,53 @@ class BasicList extends PureComponent {
           <Card
             className={styles.listCard}
             bordered={false}
-            title="标准列表"
+            title="警报列表"
             style={{ marginTop: 24 }}
             bodyStyle={{ padding: '0 32px 40px 32px' }}
             extra={extraContent}
           >
-            <Button
-              type="dashed"
-              style={{ width: '100%', marginBottom: 8 }}
-              icon="plus"
-              onClick={this.showModal}
-              ref={component => {
-                /* eslint-disable */
-                this.addBtn = findDOMNode(component);
-                /* eslint-enable */
-              }}
-            >
-              添加
-            </Button>
-            <List
-              size="large"
-              rowKey="id"
-              loading={loading}
-              pagination={paginationProps}
-              dataSource={list}
-              renderItem={item => (
-                <List.Item
-                  actions={[
-                    <a
-                      onClick={e => {
-                        e.preventDefault();
-                        this.showEditModal(item);
-                      }}
-                    >
-                      编辑
-                    </a>,
-                    <MoreBtn current={item} />,
-                  ]}
-                >
-                  <List.Item.Meta
-                    avatar={<Avatar src={item.logo} shape="square" size="large" />}
-                    title={<a href={item.href}>{item.title}</a>}
-                    description={item.subDescription}
-                  />
-                  <ListContent data={item} />
-                </List.Item>
-              )}
-            />
+            <div className={cardStyles.cardList}>
+              <List
+                rowKey="id"
+                loading={loading}
+                grid={{ gutter: 24, lg: 4, md: 2, sm: 1, xs: 1 }}
+                dataSource={alerts}
+                renderItem={this.renderItem}
+              />
+            </div>
+
+            {/*<Button*/}
+            {/*type="dashed"*/}
+            {/*style={{ width: '100%', marginBottom: 8 }}*/}
+            {/*icon="plus"*/}
+            {/*onClick={this.showModal}*/}
+            {/*ref={component => {*/}
+            {/*this.addBtn = findDOMNode(component);*/}
+            {/*}}*/}
+            {/*>*/}
+            {/*添加*/}
+            {/*</Button>*/}
+            {/*<MoreBtn current={item}/>,*/}
+            {/*<List*/}
+            {/*size="large"*/}
+            {/*rowKey="id"*/}
+            {/*loading={loading}*/}
+            {/*pagination={paginationProps}*/}
+            {/*dataSource={alerts}*/}
+            {/*renderItem={item => (*/}
+            {/*<List.Item*/}
+            {/*actions={getActions(item)}*/}
+            {/*>*/}
+            {/*<List.Item.Meta*/}
+            {/*avatar={<Avatar style={{ color: '#fff', backgroundColor: item.status == 0 ? 'red' : 'green' }}*/}
+            {/*icon={item.status == 0 ? 'alert' : 'phone'} shape="square" size="large"/>}*/}
+            {/*title={<a href={item.href}>{item.title}</a>}*/}
+            {/*description={item.description}*/}
+            {/*/>*/}
+            {/*<ListContent style={{ justifyContent: 'flex-start' }} data={item}/>*/}
+            {/*</List.Item>*/}
+            {/*)}*/}
+            {/*/>*/}
           </Card>
         </div>
         <Modal

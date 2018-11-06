@@ -39,7 +39,6 @@ class Register extends Component {
   componentDidUpdate() {
     const { form, register, dispatch } = this.props;
     if (register.user && register.user.token) {
-      localStorage.setItem('token', register.user.token);
       router.push({
         pathname: '/user/register-result',
         state: {

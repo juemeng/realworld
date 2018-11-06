@@ -1,15 +1,15 @@
-import { queryProjectNotice } from '@/services/api';
+import { queryNotices } from '@/services/user';
 
 export default {
   namespace: 'project',
 
   state: {
-    notice: [],
+    notices: [],
   },
 
   effects: {
     *fetchNotice(_, { call, put }) {
-      const response = yield call(queryProjectNotice);
+      const response = yield call(queryNotices);
       yield put({
         type: 'saveNotice',
         payload: Array.isArray(response) ? response : [],
@@ -21,7 +21,7 @@ export default {
     saveNotice(state, action) {
       return {
         ...state,
-        notice: action.payload,
+        notices: action.payload,
       };
     },
   },

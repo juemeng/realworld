@@ -4,6 +4,7 @@ import Link from 'umi/link';
 import { Checkbox, Alert, Icon } from 'antd';
 import Login from '@/components/Login';
 import styles from './Login.less';
+import router from 'umi/router';
 
 const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
 
@@ -13,7 +14,7 @@ const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
 }))
 class LoginPage extends Component {
   state = {
-    type: 'account',
+    type:"account",
     autoLogin: true,
   };
 
@@ -39,14 +40,13 @@ class LoginPage extends Component {
     });
 
   handleSubmit = (err, values) => {
-    const { type } = this.state;
+    const { autoLogin } = this.state;
     if (!err) {
       const { dispatch } = this.props;
       dispatch({
         type: 'login/login',
         payload: {
-          ...values,
-          type,
+          ...values
         },
       });
     }
@@ -75,8 +75,8 @@ class LoginPage extends Component {
             this.loginForm = form;
           }}
         >
-          {login.status === 'error' && login.type === 'account' && !submitting && this.renderMessage('账户或密码错误')}
-          <UserName name="userName" placeholder="用户名" />
+          {login.status === 'error' && login.type === 'account' && !submitting && this.renderMessage(login.errorMessage)}
+          <UserName name="username" placeholder="用户名" />
           <Password
             name="password"
             placeholder="密码"

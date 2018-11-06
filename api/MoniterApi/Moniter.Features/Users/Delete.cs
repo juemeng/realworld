@@ -18,19 +18,19 @@ namespace Moniter.Features.Users
     {
         public class Command : IRequest
         {
-            public Command(int id)
+            public Command(Guid id)
             {
                 Id = id;
             }
 
-            public int Id { get; }
+            public Guid Id { get; }
         }
 
         public class CommandValidator : AbstractValidator<Command>
         {
             public CommandValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).NotEmpty();
             }
         }
 
@@ -63,7 +63,7 @@ namespace Moniter.Features.Users
     {
         public class Query : IRequest<UsersEnvelope>
         {
-            public Func<Domain.User, bool> Filter { get; set; } = user => true;
+            public Func<Models.User, bool> Filter { get; set; } = user => true;
         }
 
         public class QueryHandler : IRequestHandler<Query, UsersEnvelope>
@@ -71,15 +71,16 @@ namespace Moniter.Features.Users
             private readonly MoniterContext _context;
             private readonly IMapper _mapper;
 
-            public QueryHandler(MoniterContext context)
+            public QueryHandler(MoniterContext context, IMapper mapper)
             {
                 _context = context;
+                _mapper = mapper;
             }
 
             public Task<UsersEnvelope> Handle(Query message, CancellationToken cancellationToken)
             {
                 var usersQuery = _context.Users.Where(message.Filter);
-                var users = usersQuery.Select(u => _mapper.Map<Domain.User, User>(u));
+                var users = usersQuery.Select(u => _mapper.Map<Models.User, User>(u));
                 return Task.FromResult(new UsersEnvelope(users.ToList()));
             }
         }

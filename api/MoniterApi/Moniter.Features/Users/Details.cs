@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,12 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using Moniter.Infrastructure;
 using Moniter.Infrastructure.Errors;
 using Moniter.Infrastructure.Security;
+using Moniter.Models;
 
 namespace Moniter.Features.Users
 {
     public class Details
     {
-        public class Query : IRequest<UserEnvelope>
+        public class Query : IRequest<LoginUser>
         {
             public string Username { get; set; }
         }
@@ -26,7 +28,7 @@ namespace Moniter.Features.Users
             }
         }
 
-        public class QueryHandler : IRequestHandler<Query, UserEnvelope>
+        public class QueryHandler : IRequestHandler<Query, LoginUser>
         {
             private readonly MoniterContext _context;
             private readonly IJwtTokenGenerator _jwtTokenGenerator;
@@ -39,7 +41,7 @@ namespace Moniter.Features.Users
                 _mapper = mapper;
             }
 
-            public async Task<UserEnvelope> Handle(Query message, CancellationToken cancellationToken)
+            public async Task<LoginUser> Handle(Query message, CancellationToken cancellationToken)
             {
                 var user = await _context.Users
                     .AsNoTracking()
@@ -48,9 +50,12 @@ namespace Moniter.Features.Users
                 {
                     throw new RestException(HttpStatusCode.NotFound, new { User = ErrorMessages.UserNotFound});
                 }
-                var newUser = _mapper.Map<Domain.User, User>(user);
-                newUser.Token = await _jwtTokenGenerator.CreateToken(user.Username);
-                return new UserEnvelope(newUser);
+
+                var noticeCount = await _context.Alerts.CountAsync(x => x.Status == AlertStatus.New, cancellationToken);
+                
+                var newUser = _mapper.Map<Models.User, LoginUser>(user);
+                newUser.NoticeCount = noticeCount;
+                return newUser;
             }
         }
     }
