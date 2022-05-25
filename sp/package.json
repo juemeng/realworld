@@ -11,7 +11,7 @@
   "dependencies": {
     "@aspnet/signalr": "^1.0.3",
     "axios": "^0.18.0",
-    "eventsource": "^1.0.7",
+    "eventsource": "^2.0.2",
     "serialport": "^7.0.2",
     "tslib": "^1.9.3",
     "websocket": "^1.0.26",
